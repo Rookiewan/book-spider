@@ -6,7 +6,8 @@ const cheerio = require('cheerio')
 
 const BI_QU_GE = {
   URLS: {
-    CHAPTER: 'https://www.biquke.com/bq/0/990/'
+    // CHAPTER: 'https://www.biquke.com/bq/0/990/' // 凡人修仙传仙界篇
+    CHAPTER: 'https://www.biquguan.com/bqg447042/' // 爱情公寓
   },
   HANDLERS: {
     chapterHandle: (htmlStr) => {
@@ -14,6 +15,7 @@ const BI_QU_GE = {
       let list = _$('#list dd')
       let chapters = []
       list.each((index, item) => {
+        // FIXME: filter latest part
         let _item = _$(item)
         let href = _item.find('a').attr('href')
         if (href) {
@@ -99,9 +101,10 @@ async function main () {
     console.log(totalChapter, results.length)
     let content = ''
     results.map(_ => {
+      // FIXME: use format plugin
       content += `${_.name}\r\n${_.content}`
     })
-    fs.writeFileSync(path.resolve(__dirname, '凡人修仙传(仙界篇).txt'), content)
+    fs.writeFileSync(path.resolve(__dirname, '爱情公寓.txt'), content)
     console.log('gen book complete')
   })
 }
