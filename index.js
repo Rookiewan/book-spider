@@ -6,8 +6,8 @@ const cheerio = require('cheerio')
 
 const BI_QU_GE = {
   URLS: {
-    // CHAPTER: 'https://www.biquke.com/bq/0/990/' // 凡人修仙传仙界篇
-    CHAPTER: 'https://www.biquguan.com/bqg447042/' // 爱情公寓
+    CHAPTER: 'https://www.biquke.com/bq/0/990/' // 凡人修仙传仙界篇
+    // CHAPTER: 'https://www.biquguan.com/bqg447042/' // 爱情公寓
   },
   HANDLERS: {
     chapterHandle: (htmlStr) => {
