@@ -3,6 +3,8 @@ const fs = require('fs')
 const async = require('async')
 const request = require('superagent')
 const cheerio = require('cheerio')
+const nzhcn = require('nzh/cn')
+// const indentString = require('indent-string')
 
 const BI_QU_GE = {
   URLS: {
@@ -33,11 +35,21 @@ const BI_QU_GE = {
       let content = $('#content').text()
       content = content.replace(/\s{4}/g, '\r\n    ')
       return content
+    },
+    ChineseNumber2Number (title) {
+      const regx = /第(.*?)章/
+      let number = -1
+      try {
+        const ChineseNumber = title.match(regx)
+        number = nzhcn.decodeS(ChineseNumber[1])
+      } catch (err) {}
+      return number
     }
   }
 }
 
 function getChapter (start = 0, end) {
+  // TODO: 目前仅支持中文数字，且跟网址绑定了，需要抽离出来
   return new Promise((resolve, reject) => {
     request
       .get(BI_QU_GE.URLS.CHAPTER)
@@ -47,9 +59,19 @@ function getChapter (start = 0, end) {
           throw err
         }
         let chapters = BI_QU_GE.HANDLERS.chapterHandle(res.text)
-        chapters = chapters.slice(start)
-        if (end) {
-          chapters = chapters.slice(0, end)
+        let startIndex = start
+        let endIndex = end
+        // 找到对应章节
+        if (startIndex > 0) {
+          startIndex = chapters.findIndex(_ => BI_QU_GE.HANDLERS.ChineseNumber2Number(_.name) === startIndex)
+        }
+        if (endIndex) {
+          endIndex = chapters.findIndex(_ => BI_QU_GE.HANDLERS.ChineseNumber2Number(_.name) === endIndex)
+        }
+        chapters = chapters.slice(startIndex)
+        if (endIndex) {
+          const diff = endIndex - startIndex
+          chapters = chapters.slice(0, diff)
         }
         resolve(chapters)
       })
@@ -77,8 +99,10 @@ async function main () {
   let completeCount = 0
   let totalChapter = 0
   let chapters = []
+  const startChapter = 796
+  const endChapter = 798
   try {
-    chapters = await getChapter()
+    chapters = await getChapter(startChapter, endChapter)
   } catch (err) {
     console.log(err)
   }
@@ -102,9 +126,9 @@ async function main () {
     let content = ''
     results.map(_ => {
       // FIXME: use format plugin
-      content += `${_.name}\r\n${_.content}`
+      content += `${_.name}\r${_.content.trim()}\r`
     })
-    fs.writeFileSync(path.resolve(__dirname, '爱情公寓.txt'), content)
+    fs.writeFileSync(path.resolve(__dirname, '凡人修仙传(仙界篇).txt'), content)
     console.log('gen book complete')
   })
 }
